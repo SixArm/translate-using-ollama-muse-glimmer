@@ -1,0 +1,36 @@
+#!/bin/sh
+
+# Translate from a directory of short text files using one language to another directory of short text files using another language.
+#
+# Syntax:
+#
+#    translate-directory <src-dir> <src-language> <dst-dir> <dst-language>
+#
+# Implementation:
+#
+#    - Use Ollama Muse Glimmer 
+set -euf
+
+src_dir="$1"
+src_language="$2"
+dst_dir="$3"
+dst_language="$4"
+
+leafs() {
+    find "$src_dir" -type f -mindepth 1 | sort |
+        while read -r leaf; do
+            echo "$leaf" | cut -c$(( 1 + ${#src_dir} + 1 ))-
+        done
+}
+
+leafs |
+while read -r leaf; do
+    leaf_dir="$(dirname "$leaf")"
+    leaf_base="$(basename "$leaf")"
+    mkdir -p "$dst_dir/$leaf_dir"
+    if [ "$leaf_base" = ".locale-peer-id" ] || [ -h "$src_dir/$leaf" ]; then
+        rsync -av "$src_dir/$leaf" "$dst_dir/$leaf"
+    else
+        translate-file-using-ollama-muse-glimmer "$src_dir/$leaf" "$src_language" "$dst_dir/$leaf" "$dst_language" 
+    fi
+done

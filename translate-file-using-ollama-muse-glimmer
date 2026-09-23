@@ -1,0 +1,19 @@
+#!/bin/sh
+
+# Translate a short text file from one language to another language.
+#
+# Syntax:
+#
+#    translate-text-file <src-file> <src-language> <dst-file> <dst-language>
+#
+# Implementation:
+#
+#    - Use Ollama Muse Glimmer 
+#
+
+set -euf
+src_file="$1"
+src_language="$2"
+dst_file="$3"
+dst_language="$4"
+cat "$src_file" | ollama run muse-glimmer:30b-mlx "Translate from $src_language to $dst_language. Output results only; do not output chat." > "$dst_file"
