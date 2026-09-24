@@ -27,6 +27,7 @@ translate_relative_file(){
     relative_file="$1"
     src_file="$arg_src_dir/$relative_file"
     dst_file="$arg_dst_dir/$relative_file"
+    test -e "$dst_file" && return
     mkdir -p "$(dirname "$dst_file")"
     base="$(basename "$relative_file")"
     if [ "$base" = ".locale-peer-id" ] || [ -h "$src_file" ]; then
@@ -40,7 +41,7 @@ translate_relative_file(){
 translate_relative_files(){
     relative_files |
     while read -r relative_file; do
-        translate_relative_file "$relative_file"    
+        translate_relative_file "$relative_file"
     done
 }
 
@@ -67,4 +68,4 @@ translate_dir_names() {
 }
 
 translate_relative_files
-translate_dst_dir_names
+translate_dir_names
