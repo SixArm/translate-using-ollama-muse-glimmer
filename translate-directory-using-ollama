@@ -12,10 +12,11 @@
 
 set -euf
 
-arg_src_dir="$1"
-arg_src_language="$2"
-arg_dst_dir="$3"
-arg_dst_language="$4"
+arg_model="$1" # muse-glimmer:30b-mlx
+arg_src_dir="$2"
+arg_src_language="$3"
+arg_dst_dir="$4"
+arg_dst_language="$5"
 
 # Find all relative files in the source directory.
 relative_files() {
@@ -33,7 +34,7 @@ translate_relative_file(){
     if [ "$base" = ".locale-peer-id" ] || [ -h "$src_file" ]; then
         rsync -av "$src_file" "$dst_file"
     else
-        translate-file-using-ollama-muse-glimmer "$src_file" "$arg_src_language" "$dst_file" "$arg_dst_language" 
+        translate-file-using-ollama "$arg_model" "$src_file" "$arg_src_language" "$dst_file" "$arg_dst_language" 
     fi
 }
 

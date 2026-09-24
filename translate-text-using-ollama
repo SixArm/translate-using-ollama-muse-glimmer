@@ -1,0 +1,22 @@
+#!/bin/sh
+
+# Translate text from one language to another language.
+#
+# Syntax:
+#
+#    translate-text-using-ollama-muse-glimmer <src-text> <src-language> <dst-language>
+#
+# Model examples:
+#
+#    - muse-glimmer:30b-mlx
+#
+set -euf
+
+arg_model="$1" # 
+arg_src_text="$1"
+arg_src_language="$2"
+arg_dst_language="$3"
+
+printf "%s" "$arg_src_text" | 
+ollama run "$arg_model" --hidethinking --nowordwrap \
+"Translate from $arg_src_language into $arg_dst_language."
