@@ -1,36 +1,70 @@
 #!/bin/sh
 
-# Translate from a directory of short text files using one language to another directory of short text files using another language.
+# Translate from a directory of text files using one language to another directory of text files using another language.
 #
 # Syntax:
 #
-#    translate-directory <src-dir> <src-language> <dst-dir> <dst-language>
+#    translate-directory-using-ollama-muse-glimmer <src-dir> <src-language> <dst-dir> <dst-language>
 #
 # Implementation:
 #
 #    - Use Ollama Muse Glimmer 
+
 set -euf
 
-src_dir="$1"
-src_language="$2"
-dst_dir="$3"
-dst_language="$4"
+arg_src_dir="$1"
+arg_src_language="$2"
+arg_dst_dir="$3"
+arg_dst_language="$4"
 
-leafs() {
-    find "$src_dir" -type f -mindepth 1 | sort |
-        while read -r leaf; do
-            echo "$leaf" | cut -c$(( 1 + ${#src_dir} + 1 ))-
-        done
+# Find all relative files in the source directory.
+relative_files() {
+    ${FIND:-find} "$arg_src_dir" -mindepth 1 -type f -printf '%P\n' | sort
 }
 
-leafs |
-while read -r leaf; do
-    leaf_dir="$(dirname "$leaf")"
-    leaf_base="$(basename "$leaf")"
-    mkdir -p "$dst_dir/$leaf_dir"
-    if [ "$leaf_base" = ".locale-peer-id" ] || [ -h "$src_dir/$leaf" ]; then
-        rsync -av "$src_dir/$leaf" "$dst_dir/$leaf"
+# Translate a relative file from the source directory to the destination directory.
+translate_relative_file(){
+    relative_file="$1"
+    src_file="$arg_src_dir/$relative_file"
+    dst_file="$arg_dst_dir/$relative_file"
+    mkdir -p "$(dirname "$dst_file")"
+    base="$(basename "$relative_file")"
+    if [ "$base" = ".locale-peer-id" ] || [ -h "$src_file" ]; then
+        rsync -av "$src_file" "$dst_file"
     else
-        translate-file-using-ollama-muse-glimmer "$src_dir/$leaf" "$src_language" "$dst_dir/$leaf" "$dst_language" 
+        translate-file-using-ollama-muse-glimmer "$src_file" "$arg_src_language" "$dst_file" "$arg_dst_language" 
     fi
-done
+}
+
+# Translate all relative files from the source directory to the destination directory.
+translate_relative_files(){
+    relative_files |
+    while read -r relative_file; do
+        translate_relative_file "$relative_file"    
+    done
+}
+
+# Find all directories in the destination directory.
+dst_dirs(){
+    ${FIND:-find} "$arg_dst_dir" -mindepth 1 -type d | sort
+}
+
+# Translate a directory name.
+translate_dir_name(){
+    dir="$1"
+    parent_dir="$(dirname "$dir")"
+    from_base="$(basename "$dir")"
+    into_base=$(translate-text-using-ollama-muse-glimmer "$from_base" "$arg_src_language" "$arg_dst_language")
+    mv "$parent_dir/$from_base" "$parent_dir/$into_base"
+}
+
+# Translate all directory names in the destination directory.
+translate_dir_names() {
+    dst_dirs | tac |
+    while read -r dir; do
+        translate_dir_name "$dir"
+    done
+}
+
+translate_relative_files
+translate_dst_dir_names

@@ -1,22 +1,45 @@
 #!/bin/sh
 
-# Translate a short text file from one language to another language.
+# Translate a text file from one language to another language.
 #
 # Syntax:
 #
-#    translate-text-file <src-file> <src-language> <dst-file> <dst-language>
+#    translate-file-using-ollama-muse-glimmer <src-file> <src-language> <dst-file> <dst-language>
 #
 # Implementation:
 #
 #    - Use Ollama Muse Glimmer 
 #
-
 set -euf
+
+## https://github.com/sixarm/unix-shell-script-kit
+
+EXIT_CANTCREATE=73
+
+out() {
+        >&1 printf %s\\n "${*}"
+}
+
+err() {
+        >&2 printf %s\\n "${*}"
+}
+
+die() {
+       n="$1" ; shift ; err "${*}"; exit "$n"
+}
+
+## Main script starts here
+
 src_file="$1"
 src_language="$2"
 dst_file="$3"
 dst_language="$4"
+
+test -e "$src_file" || die $EXIT_CANTCREATE "Source file does not exist: $src_file"
+test ! -e "$dst_file" || die $EXIT_CANTCREATE "Destination file already exists: $dst_file"
+
 cat "$src_file" | 
 ollama run muse-glimmer:30b-mlx --hidethinking --nowordwrap \
 "Translate from $src_language to $dst_language." > \
-"$dst_file"
+"$dst_file.wip"
+mv "$dst_file.wip" "$dst_file"
