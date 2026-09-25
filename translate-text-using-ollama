@@ -4,19 +4,35 @@
 #
 # Syntax:
 #
-#    translate-text-using-ollama-muse-glimmer <src-text> <src-language> <dst-language>
+#    translate-text-using-ollama <model> <src-text> <src-language> <dst-language>
 #
 # Model examples:
 #
 #    - muse-glimmer:30b-mlx
+#    - qwen3.8:27b-mlx
 #
 set -euf
 
-arg_model="$1" # 
+arg_model="$1"
 arg_src_text="$1"
 arg_src_language="$2"
 arg_dst_language="$3"
 
+prompt=$(cat << EOM
+Role: You are a professional, elite literary translator specializing in adapting 
+$arg_src_language literature into culturally natural, highly descriptive $arg_dst_language.
+
+Task: Translate the provided text from $arg_src_language into $arg_dst_language.
+
+Rules:
+1. Maintain consistent terminology and character name translations across all segments.
+2. Avoid literal translationese (don\'t translate $arg_src_language syntax structures directly). 
+3. Use idiomatic, flowing $arg_dst_language that reads like native prose.
+4. Keep the emotional tone, pacing, and descriptive depth of the original text.
+5. Output ONLY the completed translation.
+6.Do not include any preambles, explanations, or conversational filler.
+EOM
+)
+
 printf "%s" "$arg_src_text" | 
-ollama run "$arg_model" --hidethinking --nowordwrap \
-"Translate from $arg_src_language into $arg_dst_language."
+ollama run "$arg_model" --hidethinking --nowordwrap "$prompt"

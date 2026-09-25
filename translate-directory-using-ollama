@@ -4,12 +4,13 @@
 #
 # Syntax:
 #
-#    translate-directory-using-ollama-muse-glimmer <src-dir> <src-language> <dst-dir> <dst-language>
+#    translate-directory-using-ollama <model> <src-dir> <src-language> <dst-dir> <dst-language>
 #
-# Implementation:
+# Model examples:
 #
-#    - Use Ollama Muse Glimmer 
-
+#    - muse-glimmer:30b-mlx 
+#    - qwen3.8:27b-mlx
+#
 set -euf
 
 arg_model="$1" # muse-glimmer:30b-mlx
